@@ -1,0 +1,234 @@
+---
+title: 'Outlier Detection Using Possibilistic and Fuzzy Clustering Algorithms'
+author: 'Zeynel Cebeci, Cagatay Cebeci & Yalcin Tahtali'
+#date: '`r format(Sys.Date(), "%B %d, %Y")`'
+date: '2022-10-01'
+output:
+  prettydoc::html_pretty:
+    theme: cayman
+    highlight: github
+    df_print: paged
+    number_sections: true
+vignette: >
+  %\VignetteIndexEntry{Outlier Detection Using Possibilistic and Fuzzy Clustering Algorithms}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+<style>
+body {
+ text-align: justify}
+</style>
+
+# Preparing for the analysis
+
+## Install and load the package odetector
+This vignette is designed as an introduction to use the R package '`odetector`' (Cebeci et al, 2022). You can download the recent version of the package from CRAN with the following command:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+install.packages("odetector")
+```
+You can also install the constantly updated version of the package from Github as follows:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+if(!require(devtools))
+  install.packages("devtools", repo="https://cloud.r-project.org")
+devtools::install_github("zcebeci/odetector")
+```
+If you have already installed '`odetector`', you can load it into R working environment by using the following command:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+library(odetector)
+```
+
+## Load the data set 
+We demonstrate outlier detection with '`odetector`' on a synthetic data set consisting of the three features (`p1`, `p2` and `p3`) of four clusters. This three-dimensional data set was created by using the R Package '`MixSim`' (Melnykov et al, 2013). The data set consists of a total of 130 data objects, 30 in each cluster in addition to 10 samples as the outliers at the bottom. 
+
+In the following code chunk, the dataset is loaded into R working environment and its first and last rows are displayed for giving an idea about its content.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE, cols.print=5, rows.print=10}
+data(x3p4c)
+head(x3p4c)
+tail(x3p4c)
+```
+The following command plots the data set by the clusters. The black marked objects in the plot are the outliers. 
+
+```{r fig.width=7, fig.height=6}
+pairs(x3p4c[,-4], col=x3p4c[,4]+1)
+```
+
+# Possibilistic Fuzzy C-Means Cluster Analysis
+The outlier detection algorithm in the package '`odetector`' uses the typicality degrees which are produced by a possibilistic clustering algorithm such as Possibilistic C-means (PCM), Fuzzy Possibilistic C-means (FPCM), Possibilistic Fuzzy C-means (PFCM) or Unsupervised Possibilistic Fuzzy C-means (UPFC). In this example, we use the outlier detection process on the results from UPFC algorithm (Wu et al, 2010) implemented in the package '`ppclust`' (Cebeci, 2018). For the details see the manual and vignettes of the R package '`ppclust`' at  https://CRAN.R-project.org/package=ppclust. If required, in order to run UPFC, the '`ppclust`' can be loadede into working environment as follows:
+
+```{r, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
+if(!require(ppclust)){
+  install.packages("ppclust", repo="https://cloud.r-project.org");
+}
+```
+For clustering we select the columns of features from the data set '`x3p4c`' and store in the data frame named `x` as follows:
+
+```{r, echo=TRUE, message=FALSE, warning=FALSE}
+x <- x3p4c[,-4]
+head(x)
+tail(x)
+```
+Since the data set '`x3p4c` has four clusters, we run UPFC for 4 clusters and display the firsrt row of clustering results with following commands:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+require(ppclust)
+res.upfc <- upfc(x, centers=4)
+head(res.upfc$t)
+```
+In clustering based outlier detection,  the use of optimal number of clusters is very critical point in order to properly partition a data set. Because we need the optimal number of clusters before starting the clustering algorithm, and it totally affect the result of clustering. One can determine it by running an appropriate clustering algorithm for a series of number of clusters in a range, namely '`c1`' and '`c2`', and calculate the clustering validation process. The majority of the validation indices has been proposed for the results from hard clustering algorithms, i.e. K-means. For validating the partitioning results of the fuzzy clustering algorithms a plenty number of clustering validation indexes, i.e, partition entropy (PE), partition coefficient (PC), Xie-Beni index (XB), Kwon index (Kwon), Fuzzy Hypervolume index (FHV) etc., have been proposed. In Cebeci (2020) the R implementations of this sort of fuzzy and possibilistic validation indexes are described. Below there is an example using R package '`fcvalid`' for determining the optimal number of clusters (*k*) in the data set '`x3p4c`'. It can be installed from Github as follows:
+
+```{r, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
+if(!require(devtools))
+  install.packages("devtools", repo="https://cloud.r-project.org")
+  suppressMessages(devtools::install_github("zcebeci/fcvalid"))
+```
+After installing the package, run the `fcm` function of the `ppclust` package by changing the cluster number from `c1` to `c2`. Then get the fuzzy index values with the relevant function in the package '`fcvalid`'
+```{r, eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
+ library(ppclust)
+ library(fcvalid)
+ c1 <- 2  #Starting number of clusters
+ c2 <- 5  #Final number of clusters
+ indnames <- c("PC","MPC","PE","XB","Kwon", "TSS", "CL", "FS", "PBMF","FSIL","FHV", "APD")
+ indvals <- matrix(ncol=length(indnames), nrow=(c2-c1+1))
+ colnames(indvals) <- indnames
+ rownames(indvals) <- paste0("c=", c1:c2)
+ i <- 1
+ for(c in c1:c2){
+  resfcm <- ppclust::fcm(x=x, centers=c, nstart=3)
+  indvals[i,1] <- pc(resfcm)
+  indvals[i,2] <- mpc(resfcm)
+  indvals[i,3] <- pe(resfcm)
+  indvals[i,4] <- xb(resfcm)
+  indvals[i,5] <- kwon(resfcm)
+  indvals[i,6] <- tss(resfcm)
+  indvals[i,7] <- cl(resfcm)
+  indvals[i,8] <- fs(resfcm)
+  indvals[i,9] <- pbm(resfcm)
+  indvals[i,10] <- si(resfcm)$sif
+  indvals[i,11] <- fhv(resfcm)
+  indvals[i,12] <- apd(resfcm)
+  i <- i+1
+ }
+```
+In the result from the R script above, you will see that the majority of fuzzy indices suggests the optimal number of clusters as 3 while some suggests as 4. For example, as a powerful fuzzy index, the Fuzzy Hypervolume (FHV) index suggests 4 clusters in the data set. So we can extract this number as the optimal number of clusters as follows:
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+ # Display the fuzzy indices in various runs of FCM
+ indvals <- round(t(indvals),3)
+ print(indvals)
+ # Optimal number of clusters with Fuzzy Hypervolume (FHV) index
+ optk <- colnames(indvals)[which.min(indvals["FHV",])]
+ optk
+ k <- unname(which.min(indvals["FHV",])) + 1
+ k
+```
+Below, there is an example to run UPFC algorithm with the optimal number of clusters found in the previous example. In the result object named `res.upfc`, `t` contains the typicality degrees to be used in outlier detection.
+
+```{r eval=FALSE, echo=TRUE, message=FALSE, warning=FALSE}
+res.upfc <- upfc(x, centers=k)
+head(res.upfc$t)
+```
+
+# Outlier Detection
+
+The outlier detection algorithm uses the object of `ppclust` class which is returned by possibilistic and fuzzy clustering algorithm as shown in the previous section. Outlier detection is started with the predefined default values of the function `detect.outliers` as follows:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res.out <- detect.outliers(res.upfc)
+```
+In order to change the threshold typicality, the arguments `alpha` and `alpha2` can be set to different threshold values. In the following command  `alpha` is set to 0.05 for the Approach 1 and `alpha2` is set to 0.4 for the Approach 2. See the package manual for the details about these arguments.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res.out <- detect.outliers(res.upfc, alpha=0.05, alpha2=0.4)
+```
+The structure of result object:
+ 
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+str(res.out)
+``` 
+## Print the outliers
+The result of the `detect.outliers` is an object of `outliers` class. The components of this class can be displayed individually. For example, while the first command displays the result detected with the Approach 1, the second one displays the outliers detected with Approach 2:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res.out$outliers1
+res.out$outliers2
+```
+The full list of outliers obtained with all of the approaches can be displayed together with the function `print.outliers` as follows:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+print(res.out)
+```
+
+## Summarize the outliers
+
+The function `summary.outliers` calculates the descriptive statistics of the detected outliers.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+summary(res.out)
+```
+
+## Visualiation of the outliers
+There are many ways of visual representation of the results of outlier detection analysis. A traditional way is to plot the results by using the functions `plot.outliers` and `pairs.outliers`.
+
+### Plot the outliers
+The function `plot.outliers` plots the scattering of outliers. The argument ot is used to assing the number of approach to calculate the outliers. It ranges bbetween 1 and 4.
+
+```{r fig.width=7, fig.height=6}
+plot(res.out, ot=1)
+```
+```{r fig.width=7, fig.height=6}
+plot(res.out, ot=2)
+```
+
+### Pairwise Scatter Plots
+In order to display the outliers by the pairs of features, use the function `pairs.outliers` as follows:
+
+```{r fig.width=7, fig.height=6}
+pairs(res.out)
+```
+
+## Remove the outliers
+For furher analysis of data, the outliers can be removed from the original data set by using the function `remove.outliers` as follows:
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+Xr <- remove.outliers(res.out, sc=FALSE)
+```
+In the above command, the option `sc` is set to `TRUE` if the data objects  in small clusters are desired to be treated as collective outliers. Compare the following figure to the figure which has been plotted for the original data in the second section.
+
+```{r fig.width=7, fig.height=6}
+pairs(Xr, col=x3p4c[,4]+1)
+```
+
+# Using different threshold values 
+
+As default, the outlier detection algorithm uses `alpha`, threshold typicality level of 0.05. While the much more outliers is expected with the higher level of this argument, the lower values can be resulted with the less number of outliers. In the following command `alpha` has been set to 0.1 instead of the default value of 0.05.
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res.out <- detect.outliers(res.upfc, alpha=0.1)
+```
+As seen below, the data object `66` is also evaluated as the outlier with the setting of `alpha=0.1`. For the details, see the package manual of '`odetector`'.
+
+
+```{r echo=TRUE, message=FALSE, warning=FALSE}
+res.out$outliers1
+plot(res.out, ot=1)
+```
+
+# Citing this vignette and the package odetector{-}
+Cebeci, Z., Cebeci, C., Tahtali, Y. and Bayyurt, L. 2022. Two novel outlier detection approaches based on unsupervised possibilistic and fuzzy clustering. *Peerj Computer Science, 8*:e1060. https://doi.org/10.7717/peerj-cs.1060.
+
+# References{-}
+
+Wu, X., Wu, B., Sun, J. & Fu, H. (2010). Unsupervised possibilistic fuzzy clustering. *J. of Information & Computational Sci., 7*(5): 1075-1080.
+
+Melnykov, V., Chen,W-C. & Maitra, R. (2013). MixSim: An R package for simulating data to study performance of clustering algorithms. *J.  of Statistical Software, 51*(12):1-25. DOI: https://doi.org/10.18637/jss.v051.i12.
+
+Cebeci, Z. (2018), Comparison of internal validity indices for fuzzy clustering. *Journal of Agricultural Informatics, 10*(2):1-14.
+  DOI: https://doi.org/10.17700/jai.2019.10.2.537.
+
+Cebeci, Z. (2020). fcvalid: An R Package for Internal Validation of Probabilistic and Possibilistic Clustering. *Sakarya University Journal of Computer and Information Sciences, 3*(1), 11-27. DOI: https://doi.org/10.35377/saucis.03.01.664560.
+
+Cebeci, Z., Cebeci, C., Tahtali, Y. & Bayyurt, L. (2022). Two novel outlier detection approaches based on unsupervised possibilistic and fuzzy clustering. *Peerj Computer Science, 8*:e1060. https://doi.org/10.7717/peerj-cs.1060.
