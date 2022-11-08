@@ -12,7 +12,7 @@
 
 <meta name="author" content="Zeynel Cebeci, Cagatay Cebeci &amp; Yalcin Tahtali" />
 
-<meta name="date" content="2022-10-01" />
+<meta name="date" content="2022-11-08" />
 
 <title>Outlier Detection Using Possibilistic and Fuzzy Clustering Algorithms</title>
 
@@ -133,7 +133,7 @@ a.sourceLine {
 <section class="page-header">
 <h1 class="title toc-ignore project-name">Outlier Detection Using Possibilistic and Fuzzy Clustering Algorithms</h1>
 <h4 class="author project-author">Zeynel Cebeci, Cagatay Cebeci &amp; Yalcin Tahtali</h4>
-<h4 class="date project-date">2022-10-01</h4>
+<h4 class="date project-date">2022-11-08</h4>
 </section>
 
 
@@ -210,13 +210,13 @@ body {
 <div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">require</span>(ppclust)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>res.upfc <span class="ot">&lt;-</span> <span class="fu">upfc</span>(x, <span class="at">centers=</span><span class="dv">4</span>)</span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">head</span>(res.upfc<span class="sc">$</span>t)</span></code></pre></div>
-<pre><code>##      Cluster 1    Cluster 2    Cluster 3 Cluster 4
-## 1 0.0001413868 0.0018554019 2.244214e-04 0.9218609
-## 2 0.0001624117 0.0033327338 8.354150e-05 0.9068443
-## 3 0.0001264145 0.0015015496 2.301656e-04 0.9104836
-## 4 0.0001618827 0.0006668342 1.438301e-03 0.8493402
-## 5 0.0002465250 0.0047133546 6.533282e-05 0.9175368
-## 6 0.0021139593 0.0281144848 1.646894e-05 0.7123001</code></pre>
+<pre><code>##      Cluster 1    Cluster 2 Cluster 3    Cluster 4
+## 1 0.0001413868 2.244214e-04 0.9218609 0.0018554019
+## 2 0.0001624117 8.354150e-05 0.9068443 0.0033327338
+## 3 0.0001264145 2.301656e-04 0.9104836 0.0015015496
+## 4 0.0001618827 1.438301e-03 0.8493402 0.0006668342
+## 5 0.0002465250 6.533282e-05 0.9175368 0.0047133546
+## 6 0.0021139592 1.646894e-05 0.7123001 0.0281144849</code></pre>
 <p>In clustering based outlier detection, the use of optimal number of clusters is very critical point in order to properly partition a data set. Because we need the optimal number of clusters before starting the clustering algorithm, and it totally affect the result of clustering. One can determine it by running an appropriate clustering algorithm for a series of number of clusters in a range, namely ‘<code>c1</code>’ and ‘<code>c2</code>’, and calculate the clustering validation process. The majority of the validation indices has been proposed for the results from hard clustering algorithms, i.e. K-means. For validating the partitioning results of the fuzzy clustering algorithms a plenty number of clustering validation indexes, i.e, partition entropy (PE), partition coefficient (PC), Xie-Beni index (XB), Kwon index (Kwon), Fuzzy Hypervolume index (FHV) etc., have been proposed. In Cebeci (2020) the R implementations of this sort of fuzzy and possibilistic validation indexes are described. Below there is an example using R package ‘<code>fcvalid</code>’ for determining the optimal number of clusters (<em>k</em>) in the data set ‘<code>x3p4c</code>’. It can be installed from Github as follows:</p>
 <div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="cf">if</span>(<span class="sc">!</span><span class="fu">require</span>(devtools))</span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">install.packages</span>(<span class="st">&quot;devtools&quot;</span>, <span class="at">repo=</span><span class="st">&quot;https://cloud.r-project.org&quot;</span>)</span>

@@ -11,3 +11,8 @@
     \item \pkg{odetector} version 1.1.0 was submitted to CRAN,  (October 2022)
   }
 }
+\section{Submission of the version 1.0.1,  (October 2022)}{
+  \itemize{
+    \item A minor bug related with vignette building was fixed.  (November 2022)
+  }
+}

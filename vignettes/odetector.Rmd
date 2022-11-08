@@ -2,7 +2,7 @@
 title: 'Outlier Detection Using Possibilistic and Fuzzy Clustering Algorithms'
 author: 'Zeynel Cebeci, Cagatay Cebeci & Yalcin Tahtali'
 #date: '`r format(Sys.Date(), "%B %d, %Y")`'
-date: '2022-10-01'
+date: '2022-11-08'
 output:
   prettydoc::html_pretty:
     theme: cayman
